@@ -12,7 +12,7 @@ Stack: Next.js Route Handlers (JavaScript) · TypeORM · PostgreSQL 15+ · `ccms
 src/app/api/        routes (health, audit-events)
 src/modules/logs/   audit-events (validate + store), list (the viewer query)
 src/lib/            data-source, entities (AuditLog), after-sync (indexes, CHECK, roles, grants)
-test/               node:test (needs PostgreSQL: TEST_PG_URL)
+test/               node:test (needs a disposable PostgreSQL cluster: TEST_PG_URL)
 ```
 
 ## Run
@@ -28,6 +28,9 @@ npm run db:sync      # creates audit_log, the two roles and the grants (connects
 npm run dev          # http://127.0.0.1:3002/api/health  ->  { "status": "UP" }
 ```
 
+`TEST_PG_URL` must point to a disposable test PostgreSQL cluster, not the local or hosted Oversight cluster. The security tests
+create temporary databases and provision the cluster-wide `ccms_logs_writer` and `ccms_oversight_app` roles with test passwords.
+
 ## Database roles (TT2, D6)
 
 `npm run db:sync` connects as the schema owner (`DATABASE_ADMIN_URL`) and, in `src/lib/after-sync.js`:
@@ -36,9 +39,12 @@ npm run dev          # http://127.0.0.1:3002/api/health  ->  { "status": "UP" }
 | --- | --- | --- |
 | `ccms_logs_writer` | INSERT, SELECT | this service when it runs (`DATABASE_URL`) |
 | `ccms_oversight_app` | SELECT | the future reports and analytics |
-| everyone else (PUBLIC) | no UPDATE, DELETE or TRUNCATE | |
+| everyone else (PUBLIC) | no database, schema, or table access | |
 
 The running service uses `ccms_logs_writer` and `DB_SYNCHRONIZE=false`, so no application role can change or delete a past entry.
+Provisioning also revokes the database's default `PUBLIC` access, including `CONNECT` and `TEMPORARY`, removes runtime-role
+memberships, sets both runtime roles to `NOINHERIT` with no administrative attributes, and revokes schema creation. This prevents
+another CCMS database credential from entering Oversight when services share a PostgreSQL cluster.
 The schema owner keeps the rights every table owner has and must never be the role the service runs as. On Neon, create the
 database and the owner role in the console first; `db:sync` creates the two roles and sets their passwords from
 `LOGS_WRITER_PASSWORD` and `OVERSIGHT_APP_PASSWORD`.

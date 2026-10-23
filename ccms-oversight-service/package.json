@@ -13,7 +13,7 @@
     "start": "next start -p 3002",
     "lint": "eslint .",
     "check:time": "ccms-check-time src scripts",
-    "test": "node --test \"test/**/*.test.js\"",
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
     "db:sync": "node --env-file-if-exists=.env.local scripts/sync-db.js",
     "migrate": "node --env-file-if-exists=.env.local scripts/migrate.js",
     "ci": "npm run lint && npm run check:time && npm test && npm run build"

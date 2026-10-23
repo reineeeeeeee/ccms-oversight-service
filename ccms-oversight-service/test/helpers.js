@@ -6,6 +6,7 @@ import { afterSync } from '../src/lib/after-sync.js';
 import { entities } from '../src/lib/entities/index.js';
 
 export const SERVICE_KEY = 'test-service-key-0123456789';
+export const TEST_ROLE_PASSWORD = 'test-oversight-role-password';
 export const OFFICE_A = randomUUID();
 export const OFFICE_B = randomUUID();
 export const USERS = { adminId: randomUUID(), headA: randomUUID(), staffA: randomUUID(), headB: randomUUID(), execId: randomUUID() };
@@ -14,6 +15,8 @@ export const tokens = {};
 
 export async function setupTestEnv() {
   process.env.SERVICE_KEY = SERVICE_KEY;
+  process.env.LOGS_WRITER_PASSWORD = TEST_ROLE_PASSWORD;
+  process.env.OVERSIGHT_APP_PASSWORD = TEST_ROLE_PASSWORD;
   const keys = await createTestKeys();
   setDefaultVerifier(keys.verifier);
   const testDb = await createTestDatabase({ entities, afterSync });
@@ -34,6 +37,14 @@ export async function setupTestEnv() {
       await testDb.drop();
     },
   };
+}
+
+/** A URL for a real password-authenticated restricted role in the isolated test database. */
+export function roleUrl(databaseUrl, role, password = TEST_ROLE_PASSWORD) {
+  const url = new URL(databaseUrl);
+  url.username = role;
+  url.password = password;
+  return url.toString();
 }
 
 export const req = (method, path, { token, body, headers, key, raw } = {}) =>
