@@ -17,6 +17,7 @@ export const AuditLog = new EntitySchema({
     action: { type: 'varchar', length: 80 },
     entityType: { name: 'entity_type', type: 'varchar', length: 60 },
     entityId: { name: 'entity_id', type: 'varchar', length: 100, nullable: true },
+    entityName: { name: 'entity_name', type: 'varchar', length: 300, nullable: true },
     officeId: { name: 'office_id', type: 'uuid', nullable: true },
     beforeValue: { name: 'before_value', type: 'jsonb', nullable: true },
     afterValue: { name: 'after_value', type: 'jsonb', nullable: true },

@@ -27,6 +27,7 @@ export function toAuditEventDto(row) {
     action: row.action,
     entity_type: row.entity_type,
     entity_id: row.entity_id,
+    entity_name: row.entity_name ?? null,
     office_id: row.office_id,
     before_value: row.before_value,
     after_value: row.after_value,
@@ -36,7 +37,7 @@ export function toAuditEventDto(row) {
 }
 
 const SELECT_COLUMNS =
-  'audit_id, actor_user_id, actor_role, action, entity_type, entity_id, office_id, before_value, after_value, ip_address, occurred_at';
+  'audit_id, actor_user_id, actor_role, action, entity_type, entity_id, entity_name, office_id, before_value, after_value, ip_address, occurred_at';
 
 /**
  * GET /audit-events?actor=&action=&entity_type=&office_id=&from=&to=&page=&page_size=

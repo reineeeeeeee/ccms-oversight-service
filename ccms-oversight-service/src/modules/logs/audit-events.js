@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer';
-import { AppError, Errors, ROLES, isUuid } from 'ccms-shared';
+import { AppError, Errors, ROLES, isUuid, validIncomingAuditName } from 'ccms-shared';
 
 // Sprint 4 CC005: the receiver for audit events. One service sends each event with recordAudit (ccms-shared); this
 // module checks the body, stores it once (ON CONFLICT DO NOTHING on audit_id) and never changes it afterwards.
@@ -61,6 +61,8 @@ export function validateAuditEvent(body) {
 
   const action = requiredText('action', 80);
   const entityType = requiredText('entity_type', 60);
+  const entityName = body.entity_name ?? null;
+  if (!validIncomingAuditName(entityType, entityName)) details.entity_name = 'Affected record name must be a safe administrative label of at most 300 characters; transactions use only the tracking number';
 
   let entityId = body.entity_id ?? null;
   if (entityId !== null && (typeof entityId !== 'string' || entityId.length > 100)) {
@@ -96,6 +98,7 @@ export function validateAuditEvent(body) {
     actorRole,
     action,
     entityType,
+    entityName,
     entityId,
     officeId,
     beforeValue: values.before_value,
@@ -114,8 +117,8 @@ const jsonOrNull = (value) => (value === null ? null : JSON.stringify(value));
 export async function storeAuditEvent(dataSource, event) {
   const result = await dataSource.query(
     `INSERT INTO audit_log
-       (audit_id, actor_user_id, actor_role, action, entity_type, entity_id, office_id, before_value, after_value, ip_address, occurred_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10, $11)
+       (audit_id, actor_user_id, actor_role, action, entity_type, entity_id, office_id, before_value, after_value, ip_address, occurred_at, entity_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10, $11, $12)
      ON CONFLICT (audit_id) DO NOTHING
      RETURNING audit_id`,
     [
@@ -130,6 +133,7 @@ export async function storeAuditEvent(dataSource, event) {
       jsonOrNull(event.afterValue),
       event.ipAddress,
       event.occurredAt,
+      event.entityName ?? null,
     ],
   );
   const rows = Array.isArray(result?.[0]) ? result[0] : (result ?? []);

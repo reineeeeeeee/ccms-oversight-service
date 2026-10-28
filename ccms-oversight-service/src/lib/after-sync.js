@@ -1,3 +1,4 @@
+import { migrateSprint4Oversight } from './migrations/sprint4-critical.js';
 // Runs after TypeORM has created the table. Everything here is idempotent.
 // TypeORM cannot declare descending indexes, CHECK constraints, roles or grants, so the Logs data rules live
 // here (the team has no migrations yet, E22 open).
@@ -59,6 +60,7 @@ async function ensureRole(dataSource, role, password) {
 }
 
 export async function afterSync(dataSource) {
+  await migrateSprint4Oversight(dataSource);
   await auditLogRules(dataSource);
 
   // Keep all role mutations on one checked-out connection under an advisory lock so two syncs of this

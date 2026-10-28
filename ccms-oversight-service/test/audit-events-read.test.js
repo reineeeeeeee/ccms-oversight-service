@@ -34,7 +34,7 @@ describe('GET /audit-events (CC019, CC020)', () => {
     assert.equal(res.body.page_size, 20);
     assert.deepEqual(res.body.items.map((i) => i.audit_id), [ids.staff, ids.campus, ids.b1, ids.a2, ids.a1]);
     assert.deepEqual(Object.keys(res.body.items[0]).sort(), [
-      'action', 'actor_role', 'actor_user_id', 'after_value', 'audit_id', 'before_value', 'entity_id', 'entity_type', 'ip_address', 'occurred_at', 'office_id',
+      'action', 'actor_role', 'actor_user_id', 'after_value', 'audit_id', 'before_value', 'entity_id', 'entity_name', 'entity_type', 'ip_address', 'occurred_at', 'office_id',
     ]);
     assert.equal(res.body.items[4].occurred_at, '2026-10-01T01:00:00.000Z');
   });
